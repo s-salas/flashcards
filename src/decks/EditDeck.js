@@ -1,74 +1,113 @@
 import React, { useEffect, useState } from "react";
-import { readDeck } from "../utils/api/index.js";
-import { useParams, useNavigate } from "react-router-dom";
+import { readDeck, updateDeck } from "../utils/api/index.js";
+import { useParams, useNavigate, Link, useOutletContext } from "react-router-dom";
 
 function EditDeck() {
   const { deckId } = useParams();
   const [deck, setDeck] = useState(null);
-  const [cards, setCards] = useState([]);
+  const [name, setName] = useState("");
+  const [description, setDescription] = useState("");
   const navigate = useNavigate();
-
-  // You must use the readDeck() function from src/utils/api/index.js to load the existing deck.
+  const { handleUpdateDeck } = useOutletContext();
 
   useEffect(() => {
+    const controller = new AbortController();
+    const signal = controller.signal;
+
     async function getDeck() {
       try {
-        const deckResult = await readDeck(deckId);
+        const deckResult = await readDeck(deckId, signal);
         setDeck(deckResult);
-        setCards(deckResult.cards || []);
+        setName(deckResult.name || "");  // Ensure initial state is not undefined
+        setDescription(deckResult.description || "");  // Ensure initial state is not undefined
       } catch (error) {
-        console.error("Error loading deck: ", error);
+        if (error.name !== 'AbortError') {
+          console.error("Error loading deck: ", error);
+        }
       }
     }
 
     if (deckId) {
       getDeck();
     }
+
+    return () => {
+      controller.abort();
+    };
   }, [deckId]);
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault();
-}
+    const updatedDeck = {
+      ...deck,
+      name,
+      description,
+    };
 
-	// If the user clicks Cancel, the user is taken to the Deck screen.
-function handleCancel() {
-    navigate(`/decks/${deckId}`);
+    const controller = new AbortController();
+    const signal = controller.signal;
+
+    try {
+      const updatedDeckResult = await updateDeck(updatedDeck, signal);
+      handleUpdateDeck(updatedDeckResult); // Call the update function passed from the parent component
+      navigate(`/decks/${deckId}`);
+    } catch (error) {
+      if (error.name !== 'AbortError') {
+        console.error("Error updating deck: ", error);
+      }
     }
+  };
+
+  const handleCancel = () => {
+    navigate(`/decks/${deckId}`);
+  };
+
+  if (!deck) {
+    return <p>Loading deck...</p>;
+  }
 
   return (
-  <>
-  {deck ? (
-    <div><form onSubmit={handleSubmit}>
-      <label htmlFor="name">
-        Name:
-        <input 
-        type="text" 
-        id="name" 
-        name="name" 
-        placeholder={deck.name} />
-      </label>
-      <label htmlFor="description">
-        Description:
-        <textarea 
-        id="description" 
-        rows="4" 
-        name="description" 
-        placeholder={deck.description} />
-      </label>
-      <button type="submit">Submit</button>
-      <button type="cancel" onClick={handleCancel}>Cancel</button>
-    </form>
+    <div>
+      <nav aria-label="breadcrumb">
+        <ol className="breadcrumb">
+          <li className="breadcrumb-item"><Link to="/">Home</Link></li>
+          <li className="breadcrumb-item"><Link to={`/decks/${deckId}`}>{deck.name}</Link></li>
+          <li className="breadcrumb-item active" aria-current="page">Edit Deck</li>
+        </ol>
+      </nav>
+      <h2>Edit Deck</h2>
+      <form onSubmit={handleSubmit}>
+        <div className="form-group">
+          <label htmlFor="name">Name</label>
+          <input
+            type="text"
+            id="name"
+            name="name"
+            className="form-control"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            required
+          />
+        </div>
+        <div className="form-group">
+          <label htmlFor="description">Description</label>
+          <textarea
+            id="description"
+            name="description"
+            rows="4"
+            className="form-control"
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            required
+          />
+        </div>
+        <button type="submit" className="btn btn-primary mr-2">Submit</button>
+        <button type="button" className="btn btn-secondary" onClick={handleCancel}>
+          Cancel
+        </button>
+      </form>
     </div>
-   ) : (
-    <p>Loading deck...</p>
-  )}
-  </>
   );
 }
 
 export default EditDeck;
-
-/*
-•	There is a breadcrumb navigation bar with a link to home /, followed by the name of the deck being edited, and finally the text Edit Deck (e.g., Home/Rendering in React/Edit Deck).
-•	The user can edit and update the form.
-*/

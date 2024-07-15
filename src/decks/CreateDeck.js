@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { createDeck, listDecks } from "../utils/api/index.js"; // Ensure these imports are correct
 
 function CreateDeck({ newDeck }) {
@@ -30,6 +30,10 @@ function CreateDeck({ newDeck }) {
     setDeckDescription(event.target.value);
   };
 
+  const handleCancel = (event) => {
+    navigate("/");
+  };
+
   const handleSubmit = async (event) => {
     event.preventDefault();
 
@@ -38,7 +42,8 @@ function CreateDeck({ newDeck }) {
       return;
     }
 
-    const maxId = decks.length > 0 ? Math.max(...decks.map(deck => deck.id)) : 0;
+    const maxId =
+      decks.length > 0 ? Math.max(...decks.map((deck) => deck.id)) : 0;
     const newDeckData = {
       id: maxId + 1,
       name: deckName,
@@ -60,21 +65,55 @@ function CreateDeck({ newDeck }) {
 
   return (
     <div>
+      <nav aria-label="breadcrumb">
+        <ol className="breadcrumb">
+          <li className="breadcrumb-item">
+            <Link to="/">Home</Link>
+          </li>
+          <li className="breadcrumb-item active" aria-current="page">
+            Create Deck
+          </li>
+        </ol>
+      </nav>
       <h2>Create Deck</h2>
       {error && <p style={{ color: "red" }}>{error}</p>}
-      <form onSubmit={handleSubmit}>
-        <label>
-          Deck Name:
-          <input type="text" value={deckName} onChange={handleNameChange} required />
-        </label>
-        <br />
-        <label>
-          Deck Description:
-          <input type="text" value={deckDescription} onChange={handleDescriptionChange} required />
-        </label>
-        <br />
-        <button type="submit">Add Deck</button>
-      </form>
+      <div className="container-fluid">
+        <form onSubmit={handleSubmit}>
+          <div className="form-group">
+            <label>Name:</label>
+            <br />
+            <input
+              className="form-control w-100"
+              type="text"
+              value={deckName}
+              onChange={handleNameChange}
+              required
+            />
+          </div>
+          <div className="form-group">
+            <label>Description:</label>
+            <br />
+            <textarea
+              className="form-control w-100"
+              rows={4}
+              value={deckDescription}
+              onChange={handleDescriptionChange}
+              required
+            />
+          </div>
+          <br />
+          <button
+            type="button"
+            className="btn btn-secondary mr-2"
+            onClick={handleCancel}
+          >
+            Cancel
+          </button>
+          <button type="submit" className="btn btn-primary">
+            Add Deck
+          </button>
+        </form>
+      </div>
     </div>
   );
 }

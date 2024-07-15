@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { readDeck } from "../utils/api/index.js";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, Link } from "react-router-dom";
 
 function Study() {
   const { deckId } = useParams();
@@ -21,9 +21,7 @@ function Study() {
       }
     }
 
-    if (deckId) {
-      getDeck();
-    }
+    getDeck();
   }, [deckId]);
 
   function handleFlip() {
@@ -51,25 +49,71 @@ function Study() {
   if (cards.length < 3) {
     return (
       <div>
-        <h3>Not enough cards</h3>
-        <p>You need at least 3 cards to study. Please add more cards to this deck.</p>
-        <button onClick={() => navigate(`/decks/${deckId}/cards/new`)}>Add Cards</button>
+        <nav aria-label="breadcrumb">
+          <ol className="breadcrumb">
+            <li className="breadcrumb-item">
+              <Link to="/">Home</Link>
+            </li>
+            <li className="breadcrumb-item">
+              <Link to={`/decks/${deckId}`}>{deck.name}</Link>
+            </li>
+            <li className="breadcrumb-item active" aria-current="page">
+              Study
+            </li>
+          </ol>
+        </nav>
+        <h2>{deck.name}: Study</h2>
+
+        <h3 className="mt-3">Not enough cards</h3>
+        <p>
+          You need at least 3 cards to study. Please add more cards to this
+          deck.
+        </p>
+        <button
+          className="btn btn-primary"
+          onClick={() => navigate(`/decks/${deckId}/cards/new`)}
+        >
+          Add Cards
+        </button>
       </div>
     );
   }
 
-  const currentCard = cards[currentCardIndex];
-
   return (
     <div>
-      <h2>Studying: {deck.name}</h2>
-      <h3>
-        Card {currentCardIndex + 1} of {cards.length}
-      </h3>
-      <div key={currentCard.id}>
-        <p>{cardFront ? currentCard.front : currentCard.back}</p>
-        <button onClick={handleFlip}>Flip</button>
-        {!cardFront && <button onClick={handleNext}>Next</button>}
+      <nav aria-label="breadcrumb">
+        <ol className="breadcrumb">
+          <li className="breadcrumb-item">
+            <Link to="/">Home</Link>
+          </li>
+          <li className="breadcrumb-item">
+            <Link to={`/decks/${deckId}`}>{deck.name}</Link>
+          </li>
+          <li className="breadcrumb-item active" aria-current="page">
+            Study
+          </li>
+        </ol>
+      </nav>
+      <h2>{deck.name}: Study</h2>
+      <div className="card p-3">
+        <h3 className="mb-3">
+          Card {currentCardIndex + 1} of {cards.length}
+        </h3>
+        <div key={cards[currentCardIndex].id}>
+          <p>
+            {cardFront
+              ? cards[currentCardIndex].front
+              : cards[currentCardIndex].back}
+          </p>
+          <button className="btn btn-secondary mr-2" onClick={handleFlip}>
+            Flip
+          </button>
+          {!cardFront && (
+            <button className="btn btn-primary" onClick={handleNext}>
+              Next
+            </button>
+          )}
+        </div>
       </div>
     </div>
   );

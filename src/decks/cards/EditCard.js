@@ -1,29 +1,25 @@
 import React, { useState, useEffect } from "react";
-import { readDeck, readCard } from "../../utils/api/index.js";
-import { useParams, useNavigate } from "react-router-dom";
+import { readDeck, readCard, updateCard } from "../../utils/api/index.js";
+import { useParams, useNavigate, Link, useOutletContext } from "react-router-dom";
+import CardForm from "./CardForm.js";
 
 function EditCard() {
-  const { deckId } = useParams();
-  const { cardId } = useParams();
+  const { deckId, cardId } = useParams();
   const [deck, setDeck] = useState(null);
-  const [cards, setCards] = useState([]);
-  const [card, setCard] = useState([]);
+  const [card, setCard] = useState(null);
   const navigate = useNavigate();
-
-  // You must use the readDeck() function from src/utils/api/index.js to load the deck that contains the card to be edited.
+  const { handleUpdateCard } = useOutletContext();
 
   useEffect(() => {
     async function getDeck() {
       try {
         const deckResult = await readDeck(deckId);
         setDeck(deckResult);
-        setCards(deckResult.cards || []);
       } catch (error) {
         console.error("Error loading deck: ", error);
       }
     }
 
-    // Additionally, you must use the readCard() function from src/utils/api/index.js to load the card that you want to edit.
     async function getCard() {
       try {
         const cardResult = await readCard(cardId);
@@ -38,67 +34,49 @@ function EditCard() {
     }
 
     if (cardId) {
-        getCard();
+      getCard();
     }
-  }, [deckId]);
+  }, [deckId, cardId]);
 
-  // If the user clicks on either Save or Cancel, the user is taken to the Deck screen.
-
-  function handleCancel() {
+  const handleCancel = () => {
     navigate(`/decks/${deckId}`);
   };
 
-  function handleSave() {
-    console.log('save button working');
-    navigate(`/decks/${deckId}`);
+  const handleSave = async (event) => {
+    event.preventDefault();
+    try {
+      const updatedCard = await updateCard(card);
+      handleUpdateCard(updatedCard); // Call the update function passed from the parent component
+      navigate(`/decks/${deckId}`);
+    } catch (error) {
+      console.error("Error updating card: ", error);
+    }
   };
 
-  // It displays the same form as the Add Card screen, except it is prefilled with information for the existing card. It can be edited and updated.
+  if (!deck || !card) {
+    return <p>Loading...</p>;
+  }
 
   return (
-  <>
-  {deck && card ? (
-    <div>
-        <h2>Edit Card</h2>
-          <form>
-            <label htmlFor="front">
-              Front
-              <input
-                type="text"
-                id="front"
-                name="front"
-                rows="2"
-                placeholder={card.front}
-              />
-            </label>
-            <label htmlFor="back">
-              Back
-              <input
-                type="text"
-                id="back"
-                name="back"
-                rows="2"
-                placeholder={card.back}
-              />
-            </label>
-            <button type="cancel" onClick={handleCancel}>
-              Cancel
-            </button>
-            <button type="save" onClick={handleSave}>
-              Save
-            </button>
-          </form>
-    </div>
-  ) : (
-    <p>Loading deck...</p>
-  )}
-  </>
+    <>
+      <nav aria-label="breadcrumb">
+        <ol className="breadcrumb">
+          <li className="breadcrumb-item"><Link to="/">Home</Link></li>
+          <li className="breadcrumb-item"><Link to={`/decks/${deckId}`}>{deck.name}</Link></li>
+          <li className="breadcrumb-item active" aria-current="page">Edit Card</li>
+        </ol>
+      </nav>
+      <h2>Edit Card</h2>
+      <CardForm
+        front={card.front}
+        back={card.back}
+        setFront={(front) => setCard({ ...card, front })}
+        setBack={(back) => setCard({ ...card, back })}
+        handleSave={handleSave}
+        handleCancel={handleCancel}
+      />
+    </>
   );
 }
 
 export default EditCard;
-
-/*
-There is a breadcrumb navigation bar with a link to home /, followed by the name of the deck of which the edited card is a member, and finally the text Edit Card :cardId (e.g., Home/Deck React Router/Edit Card 4).
-
-*/

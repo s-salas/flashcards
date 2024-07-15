@@ -1,86 +1,113 @@
-import React, { useEffect, useState } from "react";
-import { readDeck } from "../../utils/api/index.js";
-import { useParams, useNavigate } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { useParams, useNavigate, Link } from "react-router-dom";
+import { readDeck, createCard } from "../../utils/api/index.js";
 
 function AddCard() {
   const { deckId } = useParams();
-  const [deck, setDeck] = useState(null);
-  const [cards, setCards] = useState([]);
   const navigate = useNavigate();
+  const [deck, setDeck] = useState(null);
+  const [front, setFront] = useState("");
+  const [back, setBack] = useState("");
 
-  // You must use the readDeck() function from src/utils/api/index.js to load the deck that you're adding the card to.
   useEffect(() => {
-    async function getDeck() {
-      try {
-        const deckResult = await readDeck(deckId);
-        setDeck(deckResult);
-        setCards(deckResult.cards || []);
-      } catch (error) {
-        console.error("Error loading deck: ", error);
-      }
-    }
+    const abortController = new AbortController();
 
-    if (deckId) {
-      getDeck();
-    }
+    const loadDeck = async () => {
+      try {
+        const deckData = await readDeck(deckId, abortController.signal);
+        setDeck(deckData);
+      } catch (error) {
+        console.error("Error loading deck:", error);
+      }
+    };
+
+    loadDeck();
+
+    return () => abortController.abort();
   }, [deckId]);
 
-  // If the user clicks Done, the user is taken to the Deck screen.
-  const handleDone = (event) => {
+  const handleFrontChange = (event) => {
+    setFront(event.target.value);
+  };
+
+  const handleBackChange = (event) => {
+    setBack(event.target.value);
+  };
+
+  const handleSubmit = async (event) => {
     event.preventDefault();
+    const card = {
+      front,
+      back,
+    };
+    try {
+      await createCard(deckId, card);
+      setFront("");
+      setBack("");
+      // Reload deck after adding a card if needed
+      const updatedDeck = await readDeck(deckId);
+      setDeck(updatedDeck);
+    } catch (error) {
+      console.error("Error adding card:", error);
+    }
+  };
+
+  const handleDone = () => {
     navigate(`/decks/${deckId}`);
   };
 
-  /* If the user clicks Save, a new card is created and associated with the relevant deck. 
-Then the form is cleared and the process for adding a card is restarted.
-*/
-  const handleSave = (event) => {
-    event.preventDefault();
-  };
+  if (!deck) {
+    return <p>Loading deck...</p>;
+  }
 
   return (
-    <>
-      {deck ? (
-        <div>
-          <h2>{deck.name}: Add Card</h2>
-          <form>
-            <label htmlFor="front">
-              Front:
-              <input
-                type="text"
-                id="front"
-                name="front"
-                rows="2"
-                placeholder="Front side of card"
-              />
-            </label>
-            <label htmlFor="back">
-              Back:
-              <input
-                type="text"
-                id="back"
-                name="back"
-                rows="2"
-                placeholder="Back side of card"
-              />
-            </label>
-            <button type="done" onClick={handleDone}>
-              Done
-            </button>
-            <button type="save" onClick={handleSave}>
-              Save
-            </button>
-          </form>
+    <div>
+      <nav aria-label="breadcrumb">
+        <ol className="breadcrumb">
+          <li className="breadcrumb-item"><Link to="/">Home</Link></li>
+          <li className="breadcrumb-item"><Link to={`/decks/${deckId}`}>{deck.name}</Link></li>
+          <li className="breadcrumb-item active" aria-current="page">Add Card</li>
+        </ol>
+      </nav>
+      <h2>Add Card</h2>
+      <form onSubmit={handleSubmit}>
+        <div className="mb-3">
+          <label htmlFor="front" className="form-label">
+            Front
+          </label>
+          <textarea
+            className="form-control"
+            id="front"
+            name="front"
+            rows="3"
+            value={front}
+            onChange={handleFrontChange}
+            required
+          />
         </div>
-      ) : (
-        <p>Loading deck...</p>
-      )}
-    </>
+        <div className="mb-3">
+          <label htmlFor="back" className="form-label">
+            Back
+          </label>
+          <textarea
+            className="form-control"
+            id="back"
+            name="back"
+            rows="3"
+            value={back}
+            onChange={handleBackChange}
+            required
+          />
+        </div>
+        <button type="submit" className="btn btn-primary mr-2">
+          Save
+        </button>
+        <button type="button" className="btn btn-secondary" onClick={handleDone}>
+          Done
+        </button>
+      </form>
+    </div>
   );
 }
 
 export default AddCard;
-
-/*
-•	There is a breadcrumb navigation bar with a link to home /, followed by the name of the deck to which the cards are being added, and finally the text Add Card (e.g., Home/React Router/Add Card).
-*/
