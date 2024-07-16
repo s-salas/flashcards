@@ -1,6 +1,11 @@
 import React, { useEffect, useState } from "react";
 import { readDeck, updateDeck } from "../utils/api/index.js";
-import { useParams, useNavigate, Link, useOutletContext } from "react-router-dom";
+import {
+  useParams,
+  useNavigate,
+  Link,
+  useOutletContext,
+} from "react-router-dom";
 
 function EditDeck() {
   const { deckId } = useParams();
@@ -16,12 +21,13 @@ function EditDeck() {
 
     async function getDeck() {
       try {
+        // must use the readDeck() function from src/utils/api/index.js to load the existing deck
         const deckResult = await readDeck(deckId, signal);
         setDeck(deckResult);
-        setName(deckResult.name || "");  // Ensure initial state is not undefined
-        setDescription(deckResult.description || "");  // Ensure initial state is not undefined
+        setName(deckResult.name || "");
+        setDescription(deckResult.description || "");
       } catch (error) {
-        if (error.name !== 'AbortError') {
+        if (error.name !== "AbortError") {
           console.error("Error loading deck: ", error);
         }
       }
@@ -49,15 +55,17 @@ function EditDeck() {
 
     try {
       const updatedDeckResult = await updateDeck(updatedDeck, signal);
-      handleUpdateDeck(updatedDeckResult); // Call the update function passed from the parent component
+      // call the update function passed from the parent component
+      handleUpdateDeck(updatedDeckResult);
       navigate(`/decks/${deckId}`);
     } catch (error) {
-      if (error.name !== 'AbortError') {
+      if (error.name !== "AbortError") {
         console.error("Error updating deck: ", error);
       }
     }
   };
 
+  // a cancel button takes the user to the deck screen
   const handleCancel = () => {
     navigate(`/decks/${deckId}`);
   };
@@ -70,9 +78,15 @@ function EditDeck() {
     <div>
       <nav aria-label="breadcrumb">
         <ol className="breadcrumb">
-          <li className="breadcrumb-item"><Link to="/">Home</Link></li>
-          <li className="breadcrumb-item"><Link to={`/decks/${deckId}`}>{deck.name}</Link></li>
-          <li className="breadcrumb-item active" aria-current="page">Edit Deck</li>
+          <li className="breadcrumb-item">
+            <Link to="/">Home</Link>
+          </li>
+          <li className="breadcrumb-item">
+            <Link to={`/decks/${deckId}`}>{deck.name}</Link>
+          </li>
+          <li className="breadcrumb-item active" aria-current="page">
+            Edit Deck
+          </li>
         </ol>
       </nav>
       <h2>Edit Deck</h2>
@@ -101,8 +115,14 @@ function EditDeck() {
             required
           />
         </div>
-        <button type="submit" className="btn btn-primary mr-2">Submit</button>
-        <button type="button" className="btn btn-secondary" onClick={handleCancel}>
+        <button type="submit" className="btn btn-primary mr-2">
+          Submit
+        </button>
+        <button
+          type="button"
+          className="btn btn-secondary"
+          onClick={handleCancel}
+        >
           Cancel
         </button>
       </form>

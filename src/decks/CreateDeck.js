@@ -30,10 +30,12 @@ function CreateDeck({ newDeck }) {
     setDeckDescription(event.target.value);
   };
 
+  // a cancel button takes the user to the home screen
   const handleCancel = (event) => {
     navigate("/");
   };
 
+  // a submit button adds the new deck data and takes the user to the deck screen
   const handleSubmit = async (event) => {
     event.preventDefault();
 

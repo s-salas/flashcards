@@ -41,7 +41,9 @@ function Layout() {
     if (window.confirm("Are you sure you want to delete this deck?")) {
       try {
         await deleteDeck(deckId);
-        setDecks((currentDecks) => currentDecks.filter((deck) => deck.id !== deckId));
+        setDecks((currentDecks) =>
+          currentDecks.filter((deck) => deck.id !== deckId)
+        );
         navigate("/");
       } catch (error) {
         console.error("Error deleting deck:", error);
@@ -60,7 +62,16 @@ function Layout() {
         <Routes>
           <Route path="/" element={<Home decks={decks} />} />
           <Route path="/decks/new" element={<CreateDeck newDeck={newDeck} />} />
-          <Route path="/decks/:deckId" element={<Deck decks={decks} setDecks={setDecks} onDeleteDeck={handleDeleteDeck} />}>
+          <Route
+            path="/decks/:deckId"
+            element={
+              <Deck
+                decks={decks}
+                setDecks={setDecks}
+                onDeleteDeck={handleDeleteDeck}
+              />
+            }
+          >
             <Route path="study" element={<Study />} />
             <Route path="edit" element={<EditDeck />} />
             <Route path="cards/new" element={<AddCard />} />

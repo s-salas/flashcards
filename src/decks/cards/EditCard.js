@@ -1,6 +1,11 @@
 import React, { useState, useEffect } from "react";
 import { readDeck, readCard, updateCard } from "../../utils/api/index.js";
-import { useParams, useNavigate, Link, useOutletContext } from "react-router-dom";
+import {
+  useParams,
+  useNavigate,
+  Link,
+  useOutletContext,
+} from "react-router-dom";
 import CardForm from "./CardForm.js";
 
 function EditCard() {
@@ -13,6 +18,7 @@ function EditCard() {
   useEffect(() => {
     async function getDeck() {
       try {
+        // must use the readDeck() function from src/utils/api/index.js to load the deck that contains the card to be edited
         const deckResult = await readDeck(deckId);
         setDeck(deckResult);
       } catch (error) {
@@ -61,9 +67,15 @@ function EditCard() {
     <>
       <nav aria-label="breadcrumb">
         <ol className="breadcrumb">
-          <li className="breadcrumb-item"><Link to="/">Home</Link></li>
-          <li className="breadcrumb-item"><Link to={`/decks/${deckId}`}>{deck.name}</Link></li>
-          <li className="breadcrumb-item active" aria-current="page">Edit Card</li>
+          <li className="breadcrumb-item">
+            <Link to="/">Home</Link>
+          </li>
+          <li className="breadcrumb-item">
+            <Link to={`/decks/${deckId}`}>{deck.name}</Link>
+          </li>
+          <li className="breadcrumb-item active" aria-current="page">
+            Edit Card
+          </li>
         </ol>
       </nav>
       <h2>Edit Card</h2>

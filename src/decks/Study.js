@@ -13,6 +13,7 @@ function Study() {
   useEffect(() => {
     async function getDeck() {
       try {
+        // must use readDeck() function from src/utils/api/index.js to load deck being studied
         const deckResult = await readDeck(deckId);
         setDeck(deckResult);
         setCards(deckResult.cards || []);
@@ -24,18 +25,23 @@ function Study() {
     getDeck();
   }, [deckId]);
 
+  // a button at the bottom of each card flips it to the other side
   function handleFlip() {
     setCardFront((prevState) => !prevState);
   }
 
+  // after each flip, the screen shows a next button to continue to the next card
   function handleNext() {
     if (currentCardIndex < cards.length - 1) {
       setCurrentCardIndex((prevIndex) => prevIndex + 1);
       setCardFront(true);
+      // after the final card in the deck is shown, a message displays offering to restart the deck
     } else {
       if (window.confirm("Restart the deck?")) {
+        // window.confirm() creates modal dialogue
         setCurrentCardIndex(0);
         setCardFront(true);
+        // if the user chooses not restart, they are navigated to the home screen
       } else {
         navigate("/");
       }
@@ -46,6 +52,7 @@ function Study() {
     return <p>Loading deck...</p>;
   }
 
+  // if there are 2 or fewer cards in the deck, a message should display that there's not enough cards with a button to add cards
   if (cards.length < 3) {
     return (
       <div>

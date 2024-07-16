@@ -14,6 +14,7 @@ function AddCard() {
 
     const loadDeck = async () => {
       try {
+        // must use the readDeck() function from src/utils/api/index.js to load the deck
         const deckData = await readDeck(deckId, abortController.signal);
         setDeck(deckData);
       } catch (error) {
@@ -34,7 +35,8 @@ function AddCard() {
     setBack(event.target.value);
   };
 
-  const handleSubmit = async (event) => {
+  // a save button creates the new card, clears the form, and the process for adding a card is restarted
+  const handleSave = async (event) => {
     event.preventDefault();
     const card = {
       front,
@@ -52,6 +54,7 @@ function AddCard() {
     }
   };
 
+  // a done button takes the user to the deck screen
   const handleDone = () => {
     navigate(`/decks/${deckId}`);
   };
@@ -64,13 +67,19 @@ function AddCard() {
     <div>
       <nav aria-label="breadcrumb">
         <ol className="breadcrumb">
-          <li className="breadcrumb-item"><Link to="/">Home</Link></li>
-          <li className="breadcrumb-item"><Link to={`/decks/${deckId}`}>{deck.name}</Link></li>
-          <li className="breadcrumb-item active" aria-current="page">Add Card</li>
+          <li className="breadcrumb-item">
+            <Link to="/">Home</Link>
+          </li>
+          <li className="breadcrumb-item">
+            <Link to={`/decks/${deckId}`}>{deck.name}</Link>
+          </li>
+          <li className="breadcrumb-item active" aria-current="page">
+            Add Card
+          </li>
         </ol>
       </nav>
       <h2>Add Card</h2>
-      <form onSubmit={handleSubmit}>
+      <form onSubmit={handleSave}>
         <div className="mb-3">
           <label htmlFor="front" className="form-label">
             Front
@@ -99,11 +108,15 @@ function AddCard() {
             required
           />
         </div>
-        <button type="submit" className="btn btn-primary mr-2">
-          Save
-        </button>
-        <button type="button" className="btn btn-secondary" onClick={handleDone}>
+        <button
+          type="button"
+          className="btn btn-secondary mr-2"
+          onClick={handleDone}
+        >
           Done
+        </button>
+        <button type="submit" className="btn btn-primary" onClick={handleSave}>
+          Save
         </button>
       </form>
     </div>

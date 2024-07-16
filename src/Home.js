@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { NavLink, useNavigate } from "react-router-dom";
-import { listDecks } from "./utils/api/index.js";
+import { deleteDeck, listDecks } from "./utils/api/index.js";
+import { useNavigate } from "react-router-dom";
 
 function Home() {
   const navigate = useNavigate();
@@ -8,6 +8,7 @@ function Home() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
+  // load the decks when the page is rendered
   useEffect(() => {
     async function loadDecks() {
       try {
@@ -24,22 +25,31 @@ function Home() {
     loadDecks();
   }, []);
 
-  const handleDeleteDeck = (deletedDeckId) => {
-    setDecks((currentDecks) => currentDecks.filter((deck) => deck.id !== deletedDeckId));
+  const handleDeleteDeck = async (deckId) => {
+    if (window.confirm("Are you sure you want to delete this deck?")) {
+      try {
+        await deleteDeck(deckId);
+        // update the decks state to remove the deleted deck
+        setDecks((prevDecks) => prevDecks.filter((deck) => deck.id !== deckId));
+        // redirect to home page
+        navigate("/");
+      } catch (error) {
+        console.error("Error deleting deck:", error);
+      }
+    }
   };
 
-  // a view button brings the user to the deck screen
+  // a view button brings the uer to the deck screen
   const handleView = (deckId) => {
     navigate(`/decks/${deckId}`);
   };
 
-  // a study button brings the user to the Study screen 
-
+  // a study button brings the user to the study screen
   const handleStudy = (deckId) => {
     navigate(`/decks/${deckId}/study`);
   };
 
-  // a create deck button brings the user to the Create Deck screen
+  // a create deck button brings the user to the create deck screen
   const createDeck = () => {
     navigate(`/decks/new`);
   };
@@ -61,9 +71,30 @@ function Home() {
             <p>{(deck.cards || []).length} cards</p>
           </div>
           <p>{deck.description}</p>
-          
-          <button className="btn btn-secondary mr-2" onClick={() => handleView(deck.id)}>View</button>
-          <button className="btn btn-primary" onClick={() => handleStudy(deck.id)}>Study</button>
+          <div className="d-flex justify-content-between">
+            <div>
+              <button
+                className="btn btn-secondary mr-2"
+                onClick={() => handleView(deck.id)}
+              >
+                View
+              </button>
+              <button
+                className="btn btn-primary"
+                onClick={() => handleStudy(deck.id)}
+              >
+                Study
+              </button>
+            </div>
+            <div>
+              <button
+                className="btn btn-danger"
+                onClick={() => handleDeleteDeck(deck.id)}
+              >
+                Delete
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -72,9 +103,11 @@ function Home() {
   return (
     <section>
       <div>
-        <button className="btn btn-secondary mb-2" onClick={createDeck}>+Create Deck</button>
+        <button className="btn btn-secondary mb-2" onClick={createDeck}>
+          +Create Deck
+        </button>
       </div>
-      <div>{deckLinks}</div>
+      <div className="mb-4">{deckLinks}</div>
     </section>
   );
 }
